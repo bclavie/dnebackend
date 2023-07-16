@@ -8,7 +8,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from uuid import UUID
-from app.website import generate_website, iterate_on_website
+from app.website import generate_website, iterate_on_website, fetch_iteration
 
 
 limiter = Limiter(key_func=get_remote_address)
@@ -37,10 +37,38 @@ async def get_story(
     website_id: str,
     background_tasks: BackgroundTasks,
 ):
+    print('got request...')
     website = generate_website(website_id)
     print("so far so good?")
     background_tasks.add_task(iterate_on_website, website_id)
 
     response = {"website": website}
+
+    return JSONResponse(response)
+
+
+@app.get("/iterate_website/")
+@limiter.limit("55/minute")
+async def get_story(
+    request: Request,
+    website_id: str,
+):
+    print('got request...')
+    website, version = fetch_iteration(website_id)  
+
+    response = {"website": website, "version": version}
+
+    return JSONResponse(response)
+
+@app.get("/specific_iteration/")
+@limiter.limit("55/minute")
+async def get_story(
+    request: Request,
+    website_id: str,
+    iteration: int
+):
+    website, version = fetch_iteration(website_id, iteration)  
+
+    response = {"website": website, "version": version}
 
     return JSONResponse(response)
