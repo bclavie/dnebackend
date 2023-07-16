@@ -21,13 +21,14 @@ openai.api_key = os.getenv("AZURE_OPENAI_KEY")
 def _gpt(messages):
     print("trying...")
     print(openai.api_base)
+    raise Exception("no calls right now thanks")
     response = openai.ChatCompletion.create(
         # model="gpt-3.5-turbo-0613",
         engine="gpt35-16k-sg",
         # engine="turbo-west",
         messages=messages,
         temperature=0.5,
-        max_tokens=2048,
+        max_tokens=2300,
     )
     # print(response)
     print('yay!')
@@ -61,6 +62,7 @@ SYSTEM_MESSAGE = """You are an AI programmer specialised in creating single-file
 START_USER_MESSAGE = """Hey! You're the world's best programming AI expert, modelled after Jeff Dean and Grady Booch. Your skills in creating efficient, beautiful, one-page website demos are unparalleled.
 
 Please, create a sample one-page landing page for a {theme} {type_}. Make up everything. Make sure the CSS is aligned with theme.
+Don't include content like copyright notices or similar things! Try to not make the page too big too :)
 You can use bootstrap, html5, css and javascript. You will make sure your answer is in a markdown codeblock, starting with "```html" and ending with "````". You must include everything within this code block, including the css <style> and javascript <script>. You cannot provide any other file but this one big html file.
 
 Let's go!
@@ -68,13 +70,13 @@ Let's go!
 
 REFINE_1 = """Good start... Now make it look better! Improve on the design! Improve on the colour scheme... Ensure your website looks fantastic and very modern!"""
 
-REFINE_2 = """You're doing great... Remember, you don't have access to images, so think of something to replace them. Maybe ASCII? Keep on improving. Self-critique and improve on the website."""
+REFINE_2 = """You're doing great... Remember, you don't have access to images, so think of something to replace them. Maybe ASCII? Keep on improving. Self-critique and improve on the website, return the updated page in a code block."""
 
-REFINE_PERSO = """This is good, but how about making it a bit more personalised? Give the website a name, write some content, don't just stick to the name by what it is!"""
+REFINE_PERSO = """This is good, but how about making it a bit more personalised? Give the website a name, write some content, don't just stick to the name by what it is! Return an improved version of the page in a code block."""
 
-REFINE_4 = """Time to find some more... Jeff Dean himself would review the website, but he's busy at the moment. Please, review as if you were him and improve on your design! If you have clickable buttons, maybe open a small closable overlay on click?"""
+REFINE_4 = """Time to find some more... Jeff Dean himself would review the website, but he's busy at the moment. Please, try to make do without the review and improve the code. If you have clickable buttons, maybe open a small closable overlay on click? Return an improved version of the page based on your findings."""
 
-REFINE_5 = """Okay, it's time to finish up, and add an ad if you can. Add some content and better design if you can. Please insert one of those three ads somewhere."""
+REFINE_5 = """Okay, it's time to finish up, and add an ad if you can. Add some content and better design if you can. Please insert one of those three ads somewhere and return a code block."""
 
 
 APPRAISAL = """As the lead AI Programming Expert modelled after Jeff Dean, you're shown this website made by """
@@ -134,8 +136,17 @@ def fetch_iteration(key: str, target_interaction: int | str = "default"):
     return current_website, current_interaction
 
 def parse_html(response):
-    assert "```html" in response
-    assert "```" in response.split("```html")[1]
+    try:
+        assert "```html" in response
+        assert "```" in response.split("```html")[1]
+    except:
+        print("______")
+        print("______")
+        print("ASSERTION ERROR")
+        print("______")
+        print("______")
+        print(response)
+        raise AssertionError
     return response.split("```html")[1].split("```")[0]
 
 def iterate_on_website(session_id: str):
