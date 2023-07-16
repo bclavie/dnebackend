@@ -41,6 +41,8 @@ REFINE_4 = """Time to find some more... Jeff Dean himself would review the websi
 REFINE_5 = """Okay, it's time to finish up, and add an ad if you can. Add some content and better design if you can. Please insert one of those three ads somewhere."""
 
 
+APPRAISAL = """As the lead AI Programming Expert modelled after Jeff Dean, you're shown this website made by """
+
 REFINES = [REFINE_1, REFINE_2, REFINE_PERSO, REFINE_4, REFINE_5]
 
 def store_website_in_redis(key: str, website: str, messages: dict, response: str, iteration: int=0, start: bool = False):
@@ -95,6 +97,10 @@ def parse_html(response):
 
 def iterate_on_website(session_id: str):
     for i in range(0, len(REFINES)):
+        if i == 4:
+            if random.random() > 0.5:
+                # Appraisal
+                pass
         iteration = i + 1
         prompt = redis_retrieve(f"{session_id}:website")['messages']
         prompt.append({"role": "user", "content": REFINES[i]})
